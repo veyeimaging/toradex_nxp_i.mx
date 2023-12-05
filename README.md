@@ -1,4 +1,4 @@
-# VEYE Camera on Toradex i.MX8M Plus board
+# VEYE Camera on Toradex i.MX8M Plus and i.MX8M Mini board
 ## Overview
 iMX8M Plus is a system-on-chip (SoC) designed and manufactured by NXP Semiconductors. It is commonly used in a variety of applications such as smart home devices, industrial automation, digital signage, and automotive infotainment systems.
 
@@ -7,7 +7,10 @@ Verdin iMX8M Plus is a member of the Verdin Family designed by Toradex.
 Dahlia is a compact carrier board providing easy access to the most common features of the Verdin family. A very convenient platform for software development and demonstration purposes, the board is compatible with all current and future Verdin SoMs.
 
 We developed the driver using the Verdin iMX8M Plus + Dahlia carrier board as an example. In addition, we have also specifically designed an ADP-TWG adapter board for signal conversion.
+
 In general, you only need to use the Image file that we provided. Of course, you can also modify or recompile the driver according to our open source code.
+
+Now, we have added support for Verdin iMX8M Mini. Except for areas specifically mentioned, iMX8M Mini is consistent with iMX8M Plus.
 ### Camera module list
 | Series  | Model  | Status  | Adaptor board  |
 | ------------ | ------------ | ------------ | ------------ |
@@ -17,6 +20,7 @@ In general, you only need to use the Image file that we provided. Of course, you
 
 VEYE and CS series camera modules are camera module with ISP functions build in. It output UYVYdata using MIPI-CSI2. We provide V4L2 interface for video streaming apps , and Video Control Toolkits (which is Shell Script) to control the camera module directly, which is called DRA(Directly Register Access).
 
+Specifically, for iMX8M Mini, the driver's default configuration sets the camera's output data format to YUYV.
 ## Hardware Setup
 We use ADP-TWG to connnect camera to Dahlia board.
 ### Connection overview
@@ -28,7 +32,7 @@ The two are connected using 1.0 mm pitch*15P FFC cable with opposite direction. 
 The two are connected using 0.5 mm pitch*24P FFC cable with same direction. The cable must be inserted with the silver contacts facing inside.
 ![ADP-TWG Connect to Toradex Dahlia](resources/800px-ADP-TWG_Connect_Toradex_Dahlia.jpg)
 
-## Burn Verdin i.MX8M Plus system
+## Burn Verdin i.MX8M Plus/Mini system
 Toradex provides various types of images for the board. Here, we only provide the "Toradex Embedded Linux - Yocto Project Reference Images” type of image for direct burning. If you want other types of burning images, please refer to the following chapter and compile and port the driver through the source code.
 ###  BSP package introduction
 #### i.MX platform bsp
@@ -79,6 +83,7 @@ The output message appears as shown below：
 ```
 As you can see, the VEYE-MIPI-IMX327S module has been successfully probed and mounted on i2c-2.
 
+### For iMX8M Plus
 - Run the following command to check the presence of video node.
 `ls /dev/video*`
 The output message appears as shown below.
@@ -133,7 +138,29 @@ The output message appears as shown below.
   ```
   In fact, the camera only provides UYVY data format, and the ISI module in i.MX 8M Plus provides data format conversion function, so /dev/video3 has so many output formats.
 
-### Video Stream test
+### For iMX8M Mini
+Run the following command to check the presence of video node.
+`ls /dev/video*`
+
+The output message appears as shown below.
+
+`video0`
+
+List the formats supported by the camera
+```
+v4l2-ctl --list-formats-ext -d /dev/video0
+
+ioctl: VIDIOC_ENUM_FMT
+
+        Type: Video Capture
+
+        [0]: 'YUYV' (YUYV 4:2:2)
+
+                Size: Discrete 1920x1080
+```
+Due to the absence of the ISI module in i.MX8M Mini, `/dev/video0`` can only directly output the data format from the camera.
+
+### Video Stream test on i.MX 8M Plus
 #### Preview (VEYE-MIPI-CAM@1080p mode)
 `gst-launch-1.0 v4l2src device=/dev/video3 ! video/x-raw, format=NV12, width=1920, height=1080,framerate=30/1 ! autovideosink -v`
 or
@@ -147,6 +174,16 @@ or
 
 #### Playback of saved video file
 `gst-launch-1.0 filesrc location=filename.mp4 ! queue ! decodebin ! videoconvert ! autovideosink`
+
+### Video Stream test on i.MX 8M Mini
+####  Preview (VEYE-MIPI-CAM@1080p mode)
+`gst-launch-1.0 v4l2src device=/dev/video0 ! 'video/x-raw,width=1920,height=1080,framerate=(fraction)30/1' ! waylandsink`
+
+#### Snap a picture (VEYE-MIPI-CAM@1080p mode)
+`gst-launch-1.0 v4l2src num-buffers=1 device=/dev/video0 ! 'video/x-raw, width=1920,height=1080' ! jpegenc ! filesink location=test_image.jpg`
+
+#### v4l2grab snap a picture
+`./v4l2grab -d /dev/video0 -W 1920 -H 1080 -I 30 -o picture.jpg`
 
 ### I2C Control Toolkits Manual
 Because of the high degree of freedom of our camera parameters, we do not use V4L2 parameters to control, but use scripts to configure parameters.
@@ -165,6 +202,7 @@ The following operations are done on Ubuntu Host PC.
 
 Toradex provides a method for building the compilation system, and here we will provide an example that is feasible.
 
+Please note that in the descriptions below, replace "imx8mp" with "imx8mm" according to your actual situation.
 ### Build Toradex standard Image
 First, refer to the following article and use Yocto to compile the entire system.
 
@@ -213,5 +251,10 @@ The above is just a brief approach. You can customize meta layers, recipes, and 
 
 ## References
 - [Verdin iMX8M Plus](https://developer.toradex.com/hardware/verdin-som-family/modules/verdin-imx8m-plus/)
+- [Verdin iMX8M Mini](https://developer.toradex.com/hardware/verdin-som-family/modules/verdin-imx8m-mini/)
 - [dahlia-carrier-board-kit](https://www.toradex.com/products/carrier-board/dahlia-carrier-board-kit)
 - [Toradex Easy Installer](https://developer.toradex.com/easy-installer/toradex-easy-installer/loading-toradex-easy-installer#verdinsomfamily)
+
+## History
+- 2023-12-05
+Added support for Verdin iMX8M Mini.
