@@ -1,4 +1,4 @@
-# VEYE CS Camera on Toradex i.MX8M Plus board
+# VEYE Camera on Toradex i.MX8M Plus board
 ## Overview
 iMX8M Plus is a system-on-chip (SoC) designed and manufactured by NXP Semiconductors. It is commonly used in a variety of applications such as smart home devices, industrial automation, digital signage, and automotive infotainment systems.
 
