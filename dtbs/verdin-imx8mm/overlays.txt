@@ -1,0 +1,1 @@
+fdt_overlays=verdin-imx8mm_dsi-to-hdmi_overlay.dtbo verdin-imx8mm_spidev_overlay.dtbo verdin-imx8mm_veyecam2m_overlay.dtbo
