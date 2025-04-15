@@ -23,5 +23,5 @@ jobs:
           git remote add gitee https://mmxuxp:${{ secrets.GITEE_TOKEN }}@gitee.com/veyeimaging/toradex_nxp_i.mx.git
           # 推送源码
           git push -f gitee HEAD:main
-          # 可选：推送标签
+          # 可选：推送标签 
           git push -f gitee --tags
